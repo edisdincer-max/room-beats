@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roombeat — Kadıköy</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0B47FF;--ink:#111;--paper:#fff;--muted:#666;--accent:#FFD447}
+*{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);
+font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
+.badge{width:40px;height:40px;border-radius:10px;background:#0F0F0F;color:#FFD447;display:grid;place-items:center;border:2px solid #000}
+.nav{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--paper);color:#000;border:2px solid #000;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.primary{background:var(--accent)}
+.pill{display:inline-flex;gap:8px;align-items:center;background:var(--paper);color:#000;border:2px solid #000;border-radius:999px;padding:6px 10px}
+.hero h1{font-size:clamp(30px,6vw,58px);margin:.2em 0;text-transform:uppercase;line-height:1}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px} @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}} @media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;color:#000;border:2px solid #000;border-radius:14px;padding:16px;box-shadow:6px 6px 0 rgba(0,0,0,.15)}
+footer{padding:18px;text-align:center;color:#ddd}
+.route{display:none} .route.active{display:block}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:50}
+.modal .box{background:#fff;color:#000;border:2px solid #000;border-radius:14px;max-width:560px;width:92vw;padding:16px}
+input,textarea,select{width:100%;padding:10px;border:2px solid #000;border-radius:12px;font:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media(max-width:680px){.row{grid-template-columns:1fr}}
+#audioBtn{position:fixed;right:16px;bottom:16px;z-index:60}
+.lang{display:flex;gap:8px;align-items:center}
+select.langsel{background:#fff;border:2px solid #000;border-radius:10px;padding:6px 8px;color:#000}
+.notice{background:#fff;color:#000;border:2px dashed #000;border-radius:14px;padding:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap header">
+  <div class="brand"><div class="badge">RB</div><div>ROOMBEAT</div></div>
+  <div class="nav">
+    <a class="btn" href="#/">Home</a>
+    <a class="btn" href="#/profiles">Profiles</a>
+    <a class="btn" href="#/me">My Profile</a>
+    <a class="btn" href="#/roadmap">Roadmap</a>
+    <button id="authBtn" class="btn">Auth</button>
+    <div class="lang">
+      <label for="lang" style="font-size:12px">Language</label>
+      <select id="lang" class="langsel">
+        <option value="en">English</option>
+        <option value="tr">Türkçe</option>
+        <option value="de">Deutsch</option>
+        <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+        <option value="es">Español</option>
+        <option value="nl">Nederlands</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="route-home" class="route active">
+    <section class="hero">
+      <span class="pill" data-i18n="pill">Kadıköy • Erasmus • Rooms</span>
+      <h1 data-i18n="hero_h1">Your home in the heart of Kadıköy</h1>
+      <p data-i18n="hero_p">Furnished rooms, residence-friendly contracts, secure deposits & a social vibe.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <a class="btn primary" id="waCta" href="https://wa.me/34655274054" target="_blank" data-i18n="whatsapp">WhatsApp</a>
+        <a class="btn" href="#/profiles" data-i18n="meet">Meet people</a>
+      </div>
+      <div class="notice" data-i18n="notice">Early beta. Sign in to see profiles. Deposits via Roombeat escrow coming soon.</div>
+    </section>
+
+    <section style="margin-top:16px">
+      <div class="grid">
+        <div class="card"><b>Caferağa</b> — €500</div>
+        <div class="card"><b>Dalga Street</b> — €450</div>
+        <div class="card"><b>Neşet Ömer Street</b> — €400</div>
+        <div class="card"><b>Osmanağa</b> — €400</div>
+        <div class="card"><b>Yeldeğirmeni</b> — €350</div>
+      </div>
+    </section>
+  </div>
+
+  <div id="route-profiles" class="route">
+    <div id="profiles-guard" class="card">Login required to view the directory.</div>
+    <div id="profiles-wrap" style="display:none">
+      <div class="grid">
+        <div class="card"><b>Profile directory</b><br><span data-i18n="profiles_txt">Coming soon: verified Erasmus profiles, in-site chat, and deposit protection.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="route-me" class="route">
+    <h2 data-i18n="me_h2">My Profile</h2>
+    <form id="meForm" class="card" onsubmit="return false;">
+      <div class="row">
+        <div><label data-i18n="name">Name<input id="me_name"></label></div>
+        <div><label data-i18n="wa">WhatsApp (private)<input id="me_whatsapp" placeholder="+90 ..."></label></div>
+      </div>
+      <div class="row">
+        <div><label data-i18n="nat">Nationality<input id="me_nat"></label></div>
+        <div><label data-i18n="uni">University<input id="me_uni"></label></div>
+      </div>
+      <div class="row">
+        <div><label data-i18n="arrival">Arrival<input id="me_arrival" placeholder="Feb"></label></div>
+        <div><label data-i18n="budget">Budget (€)<input id="me_budget" type="number" min="0" step="10"></label></div>
+      </div>
+      <div><label data-i18n="bio">Bio<textarea id="me_bio" rows="4"></textarea></label></div>
+      <div style="margin-top:10px"><button class="btn primary" id="meSave" data-i18n="save">Save</button></div>
+    </form>
+  </div>
+
+  <div id="route-roadmap" class="route">
+    <h2>Roadmap</h2>
+    <div class="grid">
+      <div class="card"><b>Phase 1</b><br>Listings, multilingual, profiles</div>
+      <div class="card"><b>Phase 2</b><br>Escrow wallet, contracts, fees</div>
+      <div class="card"><b>Phase 3</b><br>Events, games, points</div>
+    </div>
+  </div>
+</main>
+
+<div id="authModal" class="modal">
+  <div class="box">
+    <h3 data-i18n="signin">Sign In</h3>
+    <p id="authMsg" style="color:#666" data-i18n="authcopy">Use your email to receive a magic link. Apple/Google sign-in coming soon.</p>
+    <div class="row">
+      <div><label>Email<input id="authEmail" placeholder="you@example.com"></label></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:10px">
+      <button id="sendMagic" class="btn primary" data-i18n="sendlink">Send Magic Link</button>
+      <button id="closeAuth" class="btn" data-i18n="close">Close</button>
+    </div>
+    <div id="authStatus" style="margin-top:8px;color:#333"></div>
+  </div>
+</div>
+
+<iframe id="player"
+  width="120" height="120"
+  style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none"
+  frameborder="0" scrolling="no"
+  allow="autoplay"
+  src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fuser-202286394-991268468%2Fmishka-071125&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false">
+</iframe>
+<button id="audioBtn" class="btn primary">Play set (37:02)</button>
+
+<footer>© <span id="y"></span> Roombeat</footer>
+
+<script>
+const STR = {
+  tr: {
+    pill: "Kadıköy • Erasmus • Odalar",
+    hero_h1: "Kadıköy’ün kalbinde evin",
+    hero_p: "Eşyalı odalar, ikamet dostu kontratlar, güvenli depozito ve sosyal ortam.",
+    whatsapp: "WhatsApp",
+    meet: "İnsanlarla tanış",
+    notice: "Erken beta. Profilleri görmek için giriş yap. Depozito koruması yakında.",
+    me_h2: "Profilim",
+    name: "İsim",
+    wa: "WhatsApp (gizli)",
+    nat: "Uyruk",
+    uni: "Üniversite",
+    arrival: "Geliş",
+    budget: "Bütçe (€)",
+    bio: "Biyografi",
+    save: "Kaydet",
+    signin: "Giriş yap",
+    authcopy: "E-postana sihirli link gönderelim. Apple/Google yakında.",
+    sendlink: "Sihirli Link Gönder",
+    close: "Kapat",
+    profiles_txt: "Yakında: doğrulanmış Erasmus profilleri, site içi chat ve depozito koruması."
+  }
+};
+
+function setLang(l){const dict=STR[l]||{};document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n");if(dict[k]) el.textContent=dict[k];});}
+
+const routes={"#/":"route-home","#":"route-home","": "route-home","#/profiles":"route-profiles","#/me":"route-me","#/roadmap":"route-roadmap"};
+function nav(){const k=location.hash.split('?')[0];const id=routes[k]||"route-home";document.querySelectorAll('.route').forEach(e=>e.classList.remove('active'));document.getElementById(id).classList.add('active');}
+window.addEventListener('hashchange', nav); nav(); document.getElementById('y').textContent=new Date().getFullYear();
+
+const savedLang=localStorage.getItem('rb_lang')||'en';document.getElementById('lang').value=savedLang;setLang(savedLang);
+document.getElementById('lang').addEventListener('change',e=>{localStorage.setItem('rb_lang',e.target.value);setLang(e.target.value);});
+
+const START_MS = 2222000;
+const widget = SC.Widget(document.getElementById('player')); let ready=false;
+widget.bind(SC.Widget.Events.READY, function(){ widget.setVolume(22); ready=true; });
+document.getElementById('audioBtn').onclick=()=>{ if(!ready) return; widget.play(); setTimeout(()=>widget.seekTo(START_MS), 800); };
+
+const supa = window.supabase.createClient("https://toslxiowcosjayynwqdc.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc2x4aW93Y29zanlheW53cWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NTIyMzIsImV4cCI6MjA3ODIyODIzMn0.6mSSo03x2O4nKBQ5KoOEQ2VMPrp69sFY2pygpjBvCIo");
+const authModal=document.getElementById('authModal'); const authEmail=document.getElementById('authEmail'); const authStatus=document.getElementById('authStatus');
+document.getElementById('authBtn').onclick=()=>authModal.style.display='flex';
+document.getElementById('closeAuth').onclick=()=>authModal.style.display='none';
+
+document.getElementById('sendMagic').onclick=async()=>{
+  const email=authEmail.value.trim(); if(!email) return alert('Email yaz.');
+  const {error} = await supa.auth.signInWithOtp({email, options:{emailRedirectTo: window.location.href}});
+  authStatus.textContent= error ? ('Error: '+error.message) : 'Magic link sent. Check inbox.';
+};
+
+async function checkSession(){
+  const { data: { session } } = await supa.auth.getSession();
+  const guard=document.getElementById('profiles-guard'); const wrap=document.getElementById('profiles-wrap');
+  if(session){guard.style.display='none';wrap.style.display='block';} else {guard.style.display='block';wrap.style.display='none';}
+}
+checkSession(); supa.auth.onAuthStateChange(()=>checkSession());
+</script>
+</body>
+</html>
