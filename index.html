@@ -1,389 +1,791 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Roombeat — Kadıköy</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{--bg:#0B47FF;--ink:#111;--paper:#fff;--muted:#666;--accent:#FFD447}
-*{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);
-font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;}
-.wrap{max-width:1100px;margin:0 auto;padding:18px}
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
-.badge{width:40px;height:40px;border-radius:10px;background:#0F0F0F;color:#FFD447;display:grid;place-items:center;border:2px solid #000}
-.nav{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.btn{background:var(--paper);color:#000;border:2px solid #000;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-block}
-.btn.primary{background:var(--accent)}
-.pill{display:inline-flex;gap:8px;align-items:center;background:var(--paper);color:#000;border:2px solid #000;border-radius:999px;padding:6px 10px}
-.hero h1{font-size:clamp(30px,6vw,58px);margin:.2em 0;text-transform:uppercase;line-height:1}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px} @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}} @media(max-width:640px){.grid{grid-template-columns:1fr}}
-.card{background:#fff;color:#000;border:2px solid #000;border-radius:14px;padding:16px;box-shadow:6px 6px 0 rgba(0,0,0,.15)}
-footer{padding:18px;text-align:center;color:#ddd}
-.route{display:none} .route.active{display:block}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:50}
-.modal .box{background:#fff;color:#000;border:2px solid #000;border-radius:14px;max-width:560px;width:92vw;padding:16px}
-input,textarea,select{width:100%;padding:10px;border:2px solid #000;border-radius:12px;font:inherit}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px} @media(max-width:680px){.row{grid-template-columns:1fr}}
-#audioBtn{position:fixed;right:16px;bottom:16px;z-index:60}
-.lang{display:flex;gap:8px;align-items:center}
-select.langsel{background:#fff;border:2px solid #000;border-radius:10px;padding:6px 8px;color:#000}
-.notice{background:#fff;color:#000;border:2px dashed #000;border-radius:14px;padding:12px;margin-top:8px}
-.small{font-size:12px;color:#222}
-.hidden{display:none}
-#map{height:72vh;border:2px solid #000;border-radius:14px;box-shadow:6px 6px 0 rgba(0,0,0,.15)}
-.legend{background:#fff;border:2px solid #000;border-radius:12px;padding:8px;font-size:12px;line-height:1.4}
-.badge-dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:6px;vertical-align:middle}
-.dot-uni{background:#1E90FF} .dot-fun{background:#32CD32} .dot-house{background:#FF8C00}
-</style>
+  <meta charset="utf-8">
+  <title>Roombeat · Erasmus Rooms Kadıköy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <style>
+    :root {
+      --bg: #0b47ff;
+      --accent: #ffd447;
+      --accent-dark: #f0b800;
+      --text: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 16px 32px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--accent);
+      border: 2px solid #000;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,0.6);
+      background: rgba(15,23,42,0.9);
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 2px solid #020617;
+      padding: 8px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      background: #0f172a;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #111827;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 840px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    h1 {
+      font-size: clamp(26px, 4vw, 32px);
+      margin: 0 0 8px;
+    }
+
+    .hero-lead {
+      font-size: 14px;
+      max-width: 420px;
+      opacity: 0.9;
+      margin-bottom: 14px;
+    }
+
+    .hero-card {
+      background: rgba(15,23,42,0.96);
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 2px solid #000;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.55);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .stat {
+      min-width: 90px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 16px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+    }
+
+    .tag {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      opacity: 0.9;
+    }
+
+    .map-card {
+      background: rgba(15,23,42,0.96);
+      border-radius: 16px;
+      padding: 10px;
+      border: 2px solid #000;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.55);
+      display: flex;
+      flex-direction: column;
+      min-height: 260px;
+    }
+
+    #map {
+      border-radius: 12px;
+      border: 1px solid #000;
+      flex: 1;
+      min-height: 230px;
+    }
+
+    .map-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .toggle-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: #020617;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #000;
+      opacity: 1;
+    }
+
+    .list-card {
+      margin-top: 10px;
+      background: rgba(15,23,42,0.96);
+      border-radius: 16px;
+      padding: 10px 12px;
+      border: 2px solid #000;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.55);
+      font-size: 12px;
+    }
+
+    .list-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .room-list {
+      max-height: 170px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .room-item {
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(51,65,85,0.9);
+      cursor: pointer;
+    }
+
+    .room-item:last-child {
+      border-bottom: none;
+    }
+
+    .room-item strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .muted {
+      opacity: 0.72;
+    }
+
+    footer {
+      margin-top: 16px;
+      font-size: 11px;
+      opacity: 0.72;
+    }
+
+    /* Map overlay (sign-in lock) */
+    .map-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 230px;
+    }
+
+    .blurred-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.1), rgba(15,23,42,0.9));
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      border-radius: 12px;
+      z-index: 10;
+    }
+
+    .blurred-overlay span {
+      font-size: 11px;
+      background: rgba(15,23,42,0.96);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+
+    .modal {
+      background: #020617;
+      color: #e5e7eb;
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      border: 2px solid #000;
+      box-shadow: 0 20px 60px rgba(15,23,42,0.8);
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .modal h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .modal p {
+      font-size: 12px;
+      margin: 0 0 10px;
+      opacity: 0.85;
+    }
+
+    .field-label {
+      font-size: 11px;
+      margin-bottom: 3px;
+      opacity: 0.9;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    input[type="email"]::placeholder {
+      color: #6b7280;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.9);
+      opacity: 0.85;
+    }
+  </style>
 </head>
 <body>
-<div class="wrap header">
-  <div class="brand"><div class="badge">RB</div><div>ROOMBEAT</div></div>
-  <div class="nav">
-    <a class="btn" href="#/">Home</a>
-    <a class="btn" href="#/profiles">Profiles</a>
-    <a class="btn" href="#/map">Map</a>
-    <a class="btn" href="#/me">My Profile</a>
-    <a class="btn" href="#/roadmap">Roadmap</a>
-    <button id="authBtn" class="btn" data-i18n="auth">Sign in</button>
-    <div class="lang">
-      <label for="lang" class="small" data-i18n="language">Language</label>
-      <select id="lang" class="langsel">
-        <option value="en">English</option>
-        <option value="tr">Türkçe</option>
-        <option value="de">Deutsch</option>
-        <option value="fr">Français</option>
-        <option value="it">Italiano</option>
-        <option value="es">Español</option>
-        <option value="nl">Nederlands</option>
-        <option value="pt">Português</option>
-      </select>
-    </div>
-  </div>
-</div>
-
-<main class="wrap">
-  <div id="route-home" class="route active">
-    <section class="hero">
-      <span class="pill" data-i18n="pill">Kadıköy • Erasmus • Rooms</span>
-      <h1 data-i18n="hero_h1">Your home in the heart of Kadıköy</h1>
-      <p data-i18n="hero_p">Furnished rooms, residence-friendly contracts, secure deposits & a social vibe.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-        <a class="btn primary" id="waCta" href="https://wa.me/34655274054" target="_blank" data-i18n="whatsapp">WhatsApp</a>
-        <button class="btn" id="homeSignIn" data-i18n="signin">Sign in</button>
+  <div class="shell">
+    <header>
+      <div class="logo">
+        <div class="logo-badge">RB</div>
+        <div>
+          <div>ROOMBEAT</div>
+          <div style="font-size:10px; opacity:0.8;">Kadıköy · Erasmus Rooms</div>
+        </div>
       </div>
-      <div class="notice" data-i18n="notice">Early beta. Sign in to see profiles. Deposits via Roombeat escrow coming soon.</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="sessionStatus" class="pill">Signed out</span>
+        <button id="openAuth" class="btn btn-primary">Sign in</button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <section class="hero-card">
+        <div class="hero-meta">
+          <span class="pill">Furnished rooms & verified tenants</span>
+          <span class="pill">Moda · Rıhtım · Halitağa · Yeldeğirmeni</span>
+        </div>
+        <h1>Your home in the heart of Kadıköy</h1>
+        <p class="hero-lead">
+          28 rooms across 6 apartments in walking distance to Marmara Göztepe, Medeniyet, the ferry and the best coffee spots in Moda.
+        </p>
+        <div class="hero-stats">
+          <div class="stat">
+            <strong>28</strong>
+            <span>Rooms</span>
+          </div>
+          <div class="stat">
+            <strong>6</strong>
+            <span>Apartments</span>
+          </div>
+          <div class="stat">
+            <strong>4</strong>
+            <span>Neighbourhoods</span>
+          </div>
+          <div class="stat">
+            <strong>€480–700</strong>
+            <span>Typical monthly</span>
+          </div>
+        </div>
+        <div class="tag-row">
+          <span class="tag">Erasmus ready</span>
+          <span class="tag">Bills included</span>
+          <span class="tag">Walking distance to uni</span>
+          <span class="tag">Airport bus & metro nearby</span>
+        </div>
+      </section>
+
+      <section class="map-card">
+        <div class="map-header">
+          <div>
+            <div style="font-size:12px;">Kadıköy map</div>
+            <div style="font-size:10px; opacity:0.8;">Universities & Roombeat apartments</div>
+          </div>
+          <div class="toggle-row">
+            <button class="chip active" data-layer="rooms">Rooms</button>
+            <button class="chip active" data-layer="unis">Universities</button>
+          </div>
+        </div>
+        <div class="map-wrapper">
+          <div id="map"></div>
+          <div id="mapOverlay" class="blurred-overlay">
+            <span>Sign in to see precise locations</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="list-card">
+      <div class="list-title">
+        <div>
+          <div style="font-size:13px;">Available rooms</div>
+          <div class="muted" style="font-size:11px;">Moda (3), Rıhtım (1), Halitağa (1), Yeldeğirmeni (1)</div>
+        </div>
+        <span style="font-size:11px;" class="muted">Click to focus on map</span>
+      </div>
+      <div id="roomList" class="room-list"></div>
     </section>
 
-    <section id="listingsSection" class="hidden" style="margin-top:16px">
-      <div class="grid" id="listingsGrid">
-        <div class="card" data-i18n="listing_caferaga"><b>Caferağa (Kadıköy)</b> — €500</div>
-        <div class="card" data-i18n="listing_osmanaga"><b>Osmanağa (Kadıköy)</b> — €400</div>
-        <div class="card" data-i18n="listing_yeldegirmeni"><b>Yeldeğirmeni (Kadıköy)</b> — €350</div>
+    <footer>
+      Universities & fun spots are public. Your houses are approximate and visible after sign-in.
+    </footer>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="authBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Email sign in</h2>
+        <button id="closeAuth" class="btn btn-ghost" style="padding:4px 8px; font-size:11px;">Close</button>
       </div>
-      <div class="small" data-i18n="listing_hint">* Detailed addresses are hidden for privacy. Listings appear after sign‑in.</div>
-    </section>
-  </div>
-
-  <div id="route-map" class="route">
-    <h2 data-i18n="map_h2">Kadıköy Map</h2>
-    <div class="card" style="margin-bottom:10px">
-      <span class="small" data-i18n="map_info">Universities & fun spots are public. Your houses are approximate and visible after sign‑in.</span>
-    </div>
-    <div id="map"></div>
-  </div>
-
-  <div id="route-profiles" class="route">
-    <div id="profiles-guard" class="card" data-i18n="login_required">Login required to view the directory.</div>
-    <div id="profiles-wrap" style="display:none">
-      <div class="grid">
-        <div class="card"><b data-i18n="profiles_title">Profile directory</b><br><span data-i18n="profiles_txt">Coming soon: verified Erasmus profiles, in-site chat, and deposit protection.</span></div>
+      <p>We send you a magic link. No passwords, just click the link in your inbox and you’ll be signed in on this device.</p>
+      <div>
+        <div class="field-label">Email</div>
+        <input id="emailInput" type="email" placeholder="erasmus.student@example.com" autocomplete="email">
+      </div>
+      <div class="modal-footer">
+        <button id="sendMagicLink" class="btn btn-primary" style="flex: 0 0 auto;">Send magic link</button>
+        <span id="authStatus" class="status-badge">Waiting for email</span>
       </div>
     </div>
   </div>
 
-  <div id="route-me" class="route">
-    <h2 data-i18n="me_h2">My Profile</h2>
-    <form id="meForm" class="card" onsubmit="return false;">
-      <div class="row">
-        <div><label data-i18n="name">Name<input id="me_name"></label></div>
-        <div><label data-i18n="wa">WhatsApp (private)<input id="me_whatsapp" placeholder="+90 ..."></label></div>
-      </div>
-      <div class="row">
-        <div><label data-i18n="nat">Nationality<input id="me_nat"></label></div>
-        <div><label data-i18n="uni">University<input id="me_uni"></label></div>
-      </div>
-      <div class="row">
-        <div><label data-i18n="arrival">Arrival<input id="me_arrival" placeholder="Feb"></label></div>
-        <div><label data-i18n="budget">Budget (€)<input id="me_budget" type="number" min="0" step="10"></label></div>
-      </div>
-      <div><label data-i18n="bio">Bio<textarea id="me_bio" rows="4"></textarea></label></div>
-      <div style="margin-top:10px;display:flex;gap:10px">
-        <button class="btn primary" id="meSave" data-i18n="save">Save</button>
-        <span id="meStatus" class="small"></span>
-      </div>
-    </form>
-  </div>
+  <script>
+    // Supabase client
+    const supa = window.supabase.createClient(
+      "https://toslxiowcosjayynwqdc.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc2x4aW93Y29zanlheW53cWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NTIyMzIsImV4cCI6MjA3ODIyODIzMn0.6mSSo03x2O4nKBQ5KoOEQ2VMPrp69sFY2pygpjBvCIo"
+    );
 
-  <div id="route-roadmap" class="route">
-    <h2>Roadmap</h2>
-    <div class="grid">
-      <div class="card"><b>Phase 1</b><br>Listings, multilingual, profiles</div>
-      <div class="card"><b>Phase 2</b><br>Escrow wallet, contracts, fees</div>
-      <div class="card"><b>Phase 3</b><br>Events, games, points</div>
-    </div>
-  </div>
-</main>
+    const authBackdrop = document.getElementById("authBackdrop");
+    const openAuthBtn = document.getElementById("openAuth");
+    const closeAuthBtn = document.getElementById("closeAuth");
+    const sendMagicLinkBtn = document.getElementById("sendMagicLink");
+    const emailInput = document.getElementById("emailInput");
+    const authStatus = document.getElementById("authStatus");
+    const sessionStatus = document.getElementById("sessionStatus");
+    const roomListEl = document.getElementById("roomList");
+    const mapOverlay = document.getElementById("mapOverlay");
 
-<div id="authModal" class="modal">
-  <div class="box">
-    <h3 data-i18n="signin">Sign in</h3>
-    <p id="authMsg" style="color:#666" data-i18n="authcopy">Use your email to receive a magic link. Apple/Google sign-in coming soon.</p>
-    <div class="row">
-      <div><label>Email<input id="authEmail" placeholder="you@example.com"></label></div>
-    </div>
-    <div style="margin-top:10px;display:flex;gap:10px">
-      <button id="sendMagic" class="btn primary" data-i18n="sendlink">Send Magic Link</button>
-      <button id="closeAuth" class="btn" data-i18n="close">Close</button>
-    </div>
-    <div id="authStatus" style="margin-top:8px;color:#333"></div>
-  </div>
-</div>
+    let map;
+    let roomMarkers = [];
+    let uniMarkers = [];
+    let roomsLayerVisible = true;
+    let unisLayerVisible = true;
 
-<iframe id="player"
-  width="120" height="120"
-  style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none"
-  frameborder="0" scrolling="no"
-  allow="autoplay"
-  src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fuser-202286394-991268468%2Fmishka-071125&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false">
-</iframe>
-<button id="audioBtn" class="btn primary">Play set (37:02)</button>
+    // Üniversiteler
+    const universities = [
+      {
+        id: "MARMARA_GOZTEPE",
+        name: "Marmara University · Göztepe Campus",
+        coords: [40.9860, 29.0575],
+        desc: "Main Erasmus campus on the Asian side."
+      },
+      {
+        id: "MEDENIYET",
+        name: "Istanbul Medeniyet University",
+        coords: [40.9794, 29.0690],
+        desc: "Modern campus just above Fikirtepe."
+      },
+      {
+        id: "BAU_BESIKTAS",
+        name: "Bahçeşehir University (BAU) · Beşiktaş",
+        coords: [41.0407, 29.0093],
+        desc: "Popular Erasmus university by the Bosphorus."
+      },
+      {
+        id: "KADIR_HAS",
+        name: "Kadir Has University",
+        coords: [41.0241, 28.9494],
+        desc: "Golden Horn campus in Cibali."
+      },
+      {
+        id: "SABANCI_KARAKOY",
+        name: "Sabancı University · Karaköy",
+        coords: [41.0243, 28.9733],
+        desc: "Downtown Karaköy campus & shuttle hub."
+      }
+    ];
 
-<footer>© <span id="y"></span> Roombeat</footer>
+    // 6 ev – 28 oda
+    const apartments = [
+      {
+        id: "MODA_1",
+        name: "Moda Terrace House",
+        area: "Moda",
+        coords: [40.9869, 29.0246],
+        rooms: 6,
+        price: "€600–700",
+        note: "Large rooms, sea side, 3–5 min to Moda Sahil."
+      },
+      {
+        id: "MODA_2",
+        name: "Moda Park Apartment",
+        area: "Moda",
+        coords: [40.9878, 29.0277],
+        rooms: 6,
+        price: "€580–650",
+        note: "Next to Yoğurtçu Park, quiet street."
+      },
+      {
+        id: "MODA_3",
+        name: "Moda Backstreets Loft",
+        area: "Moda",
+        coords: [40.9858, 29.0231],
+        rooms: 5,
+        price: "€550–620",
+        note: "Loft style, close to coffee shops and bar street."
+      },
+      {
+        id: "RIHTIM_1",
+        name: "Rıhtım Ferry Apartment",
+        area: "Rıhtım",
+        coords: [40.9904, 29.0190],
+        rooms: 4,
+        price: "€520–600",
+        note: "2 minutes to ferry, metro & airport bus."
+      },
+      {
+        id: "HALITAGA_1",
+        name: "Halitağa Square House",
+        area: "Halitağa",
+        coords: [40.9917, 29.0249],
+        rooms: 3,
+        price: "€500–580",
+        note: "Central Kadıköy, walk anywhere in 5 minutes."
+      },
+      {
+        id: "YELDEGIRMENI_1",
+        name: "Yeldeğirmeni Erasmus Flat",
+        area: "Yeldeğirmeni",
+        coords: [40.9902, 29.0261],
+        rooms: 4,
+        price: "€480–560",
+        note: "Street-art district, cafés & bars, 7 min to metro."
+      }
+    ];
 
-<script>
-// ---------- i18n ----------
-const STR = {
-  en: {
-    auth:"Sign in", language:"Language",
-    pill:"Kadıköy • Erasmus • Rooms",
-    hero_h1:"Your home in the heart of Kadıköy",
-    hero_p:"Furnished rooms, residence-friendly contracts, secure deposits & a social vibe.",
-    whatsapp:"WhatsApp", signin:"Sign in", meet:"Meet people",
-    notice:"Early beta. Sign in to see profiles. Deposits via Roombeat escrow coming soon.",
-    listing_caferaga:"Caferağa (Kadıköy) — €500",
-    listing_osmanaga:"Osmanağa (Kadıköy) — €400",
-    listing_yeldegirmeni:"Yeldeğirmeni (Kadıköy) — €350",
-    listing_hint:"* Detailed addresses are hidden for privacy. Listings appear after sign‑in.",
-    login_required:"Login required to view the directory.",
-    profiles_title:"Profile directory",
-    profiles_txt:"Coming soon: verified Erasmus profiles, in-site chat, and deposit protection.",
-    me_h2:"My Profile", name:"Name", wa:"WhatsApp (private)",
-    nat:"Nationality", uni:"University", arrival:"Arrival", budget:"Budget (€)", bio:"Bio", save:"Save",
-    authcopy:"Use your email to receive a magic link. Apple/Google sign-in coming soon.",
-    sendlink:"Send Magic Link", close:"Close",
-    map_h2:"Kadıköy Map", map_info:"Universities & fun spots are public. Your houses are approximate and visible after sign‑in."
-  },
-  tr: {
-    auth:"Giriş yap", language:"Dil",
-    pill:"Kadıköy • Erasmus • Odalar",
-    hero_h1:"Kadıköy’ün kalbinde evin",
-    hero_p:"Eşyalı odalar, ikamet dostu kontratlar, güvenli depozito ve sosyal ortam.",
-    whatsapp:"WhatsApp", signin:"Giriş yap", meet:"İnsanlarla tanış",
-    notice:"Erken beta. Profilleri görmek için giriş yap. Depozito koruması yakında.",
-    listing_caferaga:"Caferağa (Kadıköy) — €500",
-    listing_osmanaga:"Osmanağa (Kadıköy) — €400",
-    listing_yeldegirmeni:"Yeldeğirmeni (Kadıköy) — €350",
-    listing_hint:"* Gizlilik için detaylı adresler gizlenir. İlanlar girişten sonra görünür.",
-    login_required:"Dizini görmek için giriş yapınız.",
-    profiles_title:"Profil dizini",
-    profiles_txt:"Yakında: doğrulanmış Erasmus profilleri, site içi chat ve depozito koruması.",
-    me_h2:"Profilim", name:"İsim", wa:"WhatsApp (gizli)",
-    nat:"Uyruk", uni:"Üniversite", arrival:"Geliş", budget:"Bütçe (€)", bio:"Biyografi", save:"Kaydet",
-    authcopy:"E-postana sihirli link gönderelim. Apple/Google yakında.",
-    sendlink:"Sihirli Link Gönder", close:"Kapat",
-    map_h2:"Kadıköy Haritası", map_info:"Üniversite ve eğlence noktaları herkese açık. Evler yaklaşık konumla ve girişten sonra görünür."
-  }
-};
+    // MAP
+    function initMap() {
+      map = L.map("map").setView([40.989, 29.025], 14);
 
-function setLang(l){
-  const dict = STR[l] || STR['en'];
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if(dict[key]) el.textContent = dict[key];
-  });
-}
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap"
+      }).addTo(map);
 
-// ---------- Routing ----------
-const routes={"#/":"route-home","#":"route-home","": "route-home","#/profiles":"route-profiles","#/me":"route-me","#/roadmap":"route-roadmap","#/map":"route-map"};
-function nav(){
-  const k=location.hash.split('?')[0];
-  const id=routes[k]||"route-home";
-  document.querySelectorAll('.route').forEach(e=>e.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(id==='route-map') initMap();
-}
-window.addEventListener('hashchange', nav); nav(); document.getElementById('y').textContent=new Date().getFullYear();
+      addUniversities();
+      addApartments();
+      populateRoomList();
+    }
 
-// ---------- Language ----------
-const savedLang = localStorage.getItem('rb_lang') || 'en';
-document.getElementById('lang').value = savedLang; setLang(savedLang);
-document.getElementById('lang').addEventListener('change', e=>{ localStorage.setItem('rb_lang', e.target.value); setLang(e.target.value); });
+    function addUniversities() {
+      universities.forEach((u) => {
+        const marker = L.marker(u.coords, { title: u.name })
+          .bindPopup("<b>" + u.name + "</b><br>" + u.desc);
+        marker.addTo(map);
+        uniMarkers.push(marker);
+      });
+    }
 
-// ---------- SoundCloud ----------
-const START_MS = 2222000;
-const widget = SC.Widget(document.getElementById('player')); let scReady=false;
-widget.bind(SC.Widget.Events.READY, function(){ widget.setVolume(22); scReady=true; });
-document.getElementById('audioBtn').onclick=()=>{ if(!scReady) return; widget.play(); setTimeout(()=>widget.seekTo(START_MS), 800); };
+    function addApartments() {
+      const houseIcon = L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+        iconSize: [26, 26],
+        iconAnchor: [13, 26],
+        popupAnchor: [0, -22]
+      });
 
-// ---------- Supabase (embedded) ----------
-const supa = window.supabase.createClient("https://toslxiowcosjayynwqdc.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvc2x4aW93Y29zanlheW53cWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NTIyMzIsImV4cCI6MjA3ODIyODIzMn0.6mSSo03x2O4nKBQ5KoOEQ2VMPrp69sFY2pygpjBvCIo");
+      apartments.forEach((a) => {
+        const marker = L.marker(a.coords, {
+          icon: houseIcon,
+          title: a.name
+        }).bindPopup(
+          "<b>" + a.name + "</b><br>" +
+          a.area + " · " + a.rooms + " rooms<br>" +
+          "Typical: <b>" + a.price + "</b><br>" +
+          "<span style='font-size:11px; opacity:0.85;'>" + a.note + "</span>"
+        );
+        marker.addTo(map);
+        roomMarkers.push(marker);
+      });
+    }
 
-// Auth modal
-const authModal=document.getElementById('authModal');
-document.getElementById('authBtn').onclick=()=>authModal.style.display='flex';
-document.getElementById('homeSignIn').onclick=()=>authModal.style.display='flex';
-document.getElementById('closeAuth').onclick=()=>authModal.style.display='none';
+    function populateRoomList() {
+      roomListEl.innerHTML = "";
+      apartments.forEach((a, idx) => {
+        const div = document.createElement("div");
+        div.className = "room-item";
+        div.innerHTML =
+          "<strong>" + a.area + " · " + a.name + "</strong>" +
+          "<span class='muted'>Rooms: " + a.rooms + " · Typical " + a.price + "</span><br>" +
+          "<span class='muted'>" + a.note + "</span>";
+        div.onclick = () => {
+          map.setView(a.coords, 16);
+          roomMarkers[idx].openPopup();
+        };
+        roomListEl.appendChild(div);
+      });
+    }
 
-document.getElementById('sendMagic').onclick=async()=>{
-  const email=document.getElementById('authEmail').value.trim();
-  if(!email) return alert('Email yaz.');
-  const {error} = await supa.auth.signInWithOtp({email, options:{emailRedirectTo: window.location.href}});
-  document.getElementById('authStatus').textContent= error ? ('Error: '+error.message) : 'Magic link sent. Check inbox.';
-};
+    function setRoomsVisible(visible) {
+      roomsLayerVisible = visible;
+      roomMarkers.forEach((m) => {
+        if (visible) m.addTo(map);
+        else map.removeLayer(m);
+      });
+      updateChips();
+    }
 
-// Session-based UI
-async function getSession(){ const { data: { session } } = await supa.auth.getSession(); return session; }
-async function refreshAuthUI(){
-  const session = await getSession();
-  const listingsSection = document.getElementById('listingsSection');
-  const guard = document.getElementById('profiles-guard');
-  const wrap = document.getElementById('profiles-wrap');
-  if(session){ listingsSection.classList.remove('hidden'); guard.style.display='none'; wrap.style.display='block'; }
-  else { listingsSection.classList.add('hidden'); guard.style.display='block'; wrap.style.display='none'; }
-}
-refreshAuthUI(); supa.auth.onAuthStateChange(()=> refreshAuthUI());
+    function setUnisVisible(visible) {
+      unisLayerVisible = visible;
+      uniMarkers.forEach((m) => {
+        if (visible) m.addTo(map);
+        else map.removeLayer(m);
+      });
+      updateChips();
+    }
 
-// ---------- My Profile: draft + save ----------
-const FIELDS = ["me_name","me_whatsapp","me_nat","me_uni","me_arrival","me_budget","me_bio"];
-function loadDraft(){
-  try{ const d=JSON.parse(localStorage.getItem('rb_me_draft')||'{}'); FIELDS.forEach(id=>{ if(d[id]!==undefined) document.getElementById(id).value=d[id]; }); }catch{}
-}
-function saveDraft(){
-  const d={}; FIELDS.forEach(id=> d[id]=document.getElementById(id).value);
-  localStorage.setItem('rb_me_draft', JSON.stringify(d));
-}
-FIELDS.forEach(id=>{ document.getElementById(id).addEventListener('input', saveDraft); });
-loadDraft();
+    function updateChips() {
+      document.querySelectorAll(".chip").forEach((chip) => {
+        const layer = chip.dataset.layer;
+        if (layer === "rooms") {
+          roomsLayerVisible ? chip.classList.add("active") : chip.classList.remove("active");
+        }
+        if (layer === "unis") {
+          unisLayerVisible ? chip.classList.add("active") : chip.classList.remove("active");
+        }
+      });
+    }
 
-async function upsertProfile(session){
-  const uid = session.user.id;
-  const payload = {
-    id: uid,
-    name: document.getElementById('me_name').value.trim(),
-    whatsapp: document.getElementById('me_whatsapp').value.trim(),
-    nationality: document.getElementById('me_nat').value.trim(),
-    university: document.getElementById('me_uni').value.trim(),
-    arrival: document.getElementById('me_arrival').value.trim(),
-    budget: Number(document.getElementById('me_budget').value||0),
-    bio: document.getElementById('me_bio').value.trim()
-  };
-  const { error } = await supa.from('roombeat_profiles').upsert(payload, { onConflict: 'id' });
-  return error;
-}
+    // AUTH UI
+    function openAuthModal() {
+      authBackdrop.style.display = "flex";
+      emailInput.focus();
+    }
 
-document.getElementById('meSave').onclick = async () => {
-  const status = document.getElementById('meStatus');
-  const session = await getSession();
-  if(!session){ 
-    status.textContent = 'Please sign in to save (draft is kept).';
-    authModal.style.display='flex';
-    return;
-  }
-  status.textContent = 'Saving...';
-  const err = await upsertProfile(session);
-  if(err) status.textContent = 'Error: '+err.message;
-  else { status.textContent = 'Saved ✔'; }
-};
+    function closeAuthModal() {
+      authBackdrop.style.display = "none";
+    }
 
-// ---------- Map data (approximate coords) ----------
-const DATA = {
-  center: [40.9900, 29.0270],
-  universities: [
-    { name: "Marmara University (Göztepe)", lat: 40.9839, lon: 29.0584 },
-    { name: "Istanbul Medeniyet University", lat: 41.0005, lon: 29.0540 },
-    { name: "Bahçeşehir (Altunizade Campus)", lat: 41.0225, lon: 29.0420 }
-  ],
-  fun: [
-    { name: "Moda Sahil Park", lat: 40.9838, lon: 29.0308 },
-    { name: "Kadife (Barlar) Street", lat: 40.9897, lon: 29.0318 },
-    { name: "Süreyya Opera House", lat: 40.9909, lon: 29.0349 }
-  ],
-  houses: [
-    { name: "Caferağa (approx)", lat: 40.9878, lon: 29.0277, price: "€500" },
-    { name: "Osmanağa (approx)", lat: 40.9925, lon: 29.0245, price: "€400" },
-    { name: "Yeldeğirmeni (approx)", lat: 40.9960, lon: 29.0240, price: "€350" },
-    { name: "Dalga Street (approx)", lat: 40.9937, lon: 29.0305, price: "€450" },
-    { name: "Neşet Ömer Street (approx)", lat: 40.9859, lon: 29.0259, price: "€400" }
-  ]
-};
+    openAuthBtn.addEventListener("click", openAuthModal);
+    closeAuthBtn.addEventListener("click", closeAuthModal);
 
-// ---------- Map init ----------
-let _mapInited = false;
-async function initMap(){
-  if(_mapInited) return;
-  _mapInited = true;
-  const map = L.map('map').setView(DATA.center, 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+    sendMagicLinkBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        authStatus.textContent = "Please enter an email";
+        return;
+      }
 
-  const icon = (cls) => L.divIcon({className:'', html:`<div class="badge-dot ${cls}"></div>`, iconSize:[10,10]});
+      sendMagicLinkBtn.disabled = true;
+      authStatus.textContent = "Sending...";
+      try {
+        const { error } = await supa.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
+        });
+        if (error) {
+          console.error(error);
+          authStatus.textContent = "Error: " + error.message;
+        } else {
+          authStatus.textContent = "Magic link sent. Check your inbox.";
+        }
+      } catch (err) {
+        console.error(err);
+        authStatus.textContent = "Unexpected error.";
+      } finally {
+        sendMagicLinkBtn.disabled = false;
+      }
+    });
 
-  const uniLayer = L.layerGroup();
-  const funLayer = L.layerGroup();
-  const houseLayer = L.layerGroup();
+    async function refreshSession() {
+      const { data, error } = await supa.auth.getSession();
+      if (error) {
+        console.error(error);
+        sessionStatus.textContent = "Error";
+        return;
+      }
 
-  DATA.universities.forEach(p => L.marker([p.lat, p.lon], {icon: icon('dot-uni')}).addTo(uniLayer).bindPopup(p.name));
-  DATA.fun.forEach(p => L.marker([p.lat, p.lon], {icon: icon('dot-fun')}).addTo(funLayer).bindPopup(p.name));
+      const session = data.session;
+      if (session) {
+        sessionStatus.textContent = "Signed in";
+        sessionStatus.style.background = "#22c55e1a";
+        sessionStatus.style.borderColor = "#22c55e";
+        mapOverlay.style.display = "none";
+      } else {
+        sessionStatus.textContent = "Signed out";
+        sessionStatus.style.background = "rgba(15,23,42,0.9)";
+        sessionStatus.style.borderColor = "rgba(148,163,184,0.7)";
+        mapOverlay.style.display = "flex";
+      }
+    }
 
-  const session = await getSession();
-  if(session){
-    DATA.houses.forEach(p => L.marker([p.lat, p.lon], {icon: icon('dot-house')}).addTo(houseLayer)
-      .bindPopup(`<b>${p.name}</b><br>${p.price}`));
-  }
+    // Layer chips
+    document.addEventListener("click", (ev) => {
+      if (ev.target.classList.contains("chip")) {
+        const layer = ev.target.dataset.layer;
+        if (layer === "rooms") setRoomsVisible(!roomsLayerVisible);
+        if (layer === "unis") setUnisVisible(!unisLayerVisible);
+      }
+    });
 
-  uniLayer.addTo(map);
-  funLayer.addTo(map);
-  if(session) houseLayer.addTo(map);
-
-  const overlays = {
-    "Universities": uniLayer,
-    "Fun": funLayer
-  };
-  if(session) overlays["Houses (approx)"] = houseLayer;
-
-  L.control.layers(null, overlays).addTo(map);
-
-  const legend = L.control({position:'bottomleft'});
-  legend.onAdd = function(){ 
-    const div = L.DomUtil.create('div','legend');
-    div.innerHTML = `
-      <div><span class="badge-dot dot-uni"></span>Universities</div>
-      <div><span class="badge-dot dot-fun"></span>Fun</div>
-      <div><span class="badge-dot dot-house"></span>Houses (approx)</div>
-      <div style="margin-top:6px" class="small">* House pins are approximate (privacy)</div>
-    `;
-    return div;
-  };
-  legend.addTo(map);
-}
-</script>
+    // Init
+    window.addEventListener("DOMContentLoaded", async () => {
+      initMap();
+      await refreshSession();
+      supa.auth.onAuthStateChange(() => {
+        refreshSession();
+      });
+    });
+  </script>
 </body>
 </html>
+
